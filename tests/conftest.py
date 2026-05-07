@@ -16,7 +16,7 @@ def set_env_vars(monkeypatch: pytest.MonkeyPatch) -> None:
 def reset_shared_client() -> None:
     """Reset the module-level shared HTTP client between tests.
 
-    This ensures that tests which remove env vars (to trigger EnvironmentError)
+    This ensures that tests which remove env vars (to trigger OSError)
     don't leave a stale client that masks the error in subsequent tests.
     """
     import corun_mcp_server.client as c
