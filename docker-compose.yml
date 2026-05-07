@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  corun-mcp-server:
+    build: .
+    environment:
+      - CORUN_BASE_URL=http://corun-ai:8000
+      - CORUN_API_TOKEN=${CORUN_API_TOKEN}
+      - CORUN_POLL_INTERVAL=${CORUN_POLL_INTERVAL:-5}
+      - CORUN_POLL_TIMEOUT=${CORUN_POLL_TIMEOUT:-3600}
+    networks:
+      - corun-net
+    stdin_open: true
+    tty: true
+
+  # Uncomment to run alongside a local corun-ai instance:
+  # corun-ai:
+  #   image: ghcr.io/bnlnpps/corun-ai:latest
+  #   environment:
+  #     - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+  #     - DATABASE_URL=${DATABASE_URL}
+  #   ports:
+  #     - "8000:8000"
+  #   networks:
+  #     - corun-net
+
+networks:
+  corun-net:
