@@ -138,6 +138,17 @@ async def test_submit_and_generate_returns_combined_result() -> None:
 
 
 @respx.mock
+async def test_submit_and_generate_raises_on_missing_prompt_id() -> None:
+    """Prompt API returns a response without a recognisable group-id field."""
+    respx.post("http://testserver/api/v1/prompts/").mock(
+        return_value=httpx.Response(201, json={"version": 1, "status": "draft"})
+    )
+
+    with pytest.raises(ValueError, match="prompt_group_id"):
+        await job_mod.submit_and_generate("intro", "Hello world")
+
+
+@respx.mock
 async def test_submit_and_generate_propagates_prompt_error() -> None:
     respx.post("http://testserver/api/v1/prompts/").mock(
         return_value=httpx.Response(400, json={"detail": "Bad request"})

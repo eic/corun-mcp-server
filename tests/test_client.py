@@ -30,7 +30,7 @@ def test_require_env_raises_when_base_url_missing(monkeypatch: pytest.MonkeyPatc
     monkeypatch.delenv("CORUN_BASE_URL", raising=False)
     import corun_mcp_server.client as c
 
-    with pytest.raises(EnvironmentError, match="CORUN_BASE_URL"):
+    with pytest.raises(OSError, match="CORUN_BASE_URL"):
         c._require_env()
 
 
@@ -38,7 +38,7 @@ def test_require_env_raises_when_token_missing(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.delenv("CORUN_API_TOKEN", raising=False)
     import corun_mcp_server.client as c
 
-    with pytest.raises(EnvironmentError, match="CORUN_API_TOKEN"):
+    with pytest.raises(OSError, match="CORUN_API_TOKEN"):
         c._require_env()
 
 
@@ -46,6 +46,53 @@ def test_require_env_passes_when_both_set() -> None:
     import corun_mcp_server.client as c
 
     c._require_env()  # Should not raise
+
+
+# ---------------------------------------------------------------------------
+# poll_interval / poll_timeout
+# ---------------------------------------------------------------------------
+
+
+def test_poll_interval_default() -> None:
+    import corun_mcp_server.client as c
+
+    assert c.poll_interval() == 5.0
+
+
+def test_poll_interval_custom(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CORUN_POLL_INTERVAL", "2.5")
+    import corun_mcp_server.client as c
+
+    assert c.poll_interval() == 2.5
+
+
+def test_poll_interval_invalid_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CORUN_POLL_INTERVAL", "notanumber")
+    import corun_mcp_server.client as c
+
+    with pytest.raises(OSError, match="CORUN_POLL_INTERVAL"):
+        c.poll_interval()
+
+
+def test_poll_timeout_default() -> None:
+    import corun_mcp_server.client as c
+
+    assert c.poll_timeout() == 3600.0
+
+
+def test_poll_timeout_custom(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CORUN_POLL_TIMEOUT", "60")
+    import corun_mcp_server.client as c
+
+    assert c.poll_timeout() == 60.0
+
+
+def test_poll_timeout_invalid_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CORUN_POLL_TIMEOUT", "bad")
+    import corun_mcp_server.client as c
+
+    with pytest.raises(OSError, match="CORUN_POLL_TIMEOUT"):
+        c.poll_timeout()
 
 
 # ---------------------------------------------------------------------------
@@ -66,6 +113,29 @@ def test_make_client_sets_base_url() -> None:
 
     http_client = c._make_client()
     assert "testserver" in str(http_client.base_url)
+
+
+# ---------------------------------------------------------------------------
+# _get_shared_client — connection reuse
+# ---------------------------------------------------------------------------
+
+
+def test_shared_client_is_reused() -> None:
+    import corun_mcp_server.client as c
+
+    first = c._get_shared_client()
+    second = c._get_shared_client()
+    assert first is second
+
+
+def test_shared_client_recreated_when_closed() -> None:
+    import corun_mcp_server.client as c
+
+    first = c._get_shared_client()
+    # Simulate a closed client (e.g. after an unhandled error)
+    c._shared_client = None
+    second = c._get_shared_client()
+    assert second is not first
 
 
 # ---------------------------------------------------------------------------
@@ -192,7 +262,7 @@ async def test_get_raises_env_error_when_base_url_missing(
 
     import corun_mcp_server.client as c
 
-    with pytest.raises(EnvironmentError):
+    with pytest.raises(OSError):
         await c.get("/api/v1/sections/")
 
 
@@ -203,5 +273,5 @@ async def test_post_raises_env_error_when_token_missing(
 
     import corun_mcp_server.client as c
 
-    with pytest.raises(EnvironmentError):
+    with pytest.raises(OSError):
         await c.post("/api/v1/prompts/", {})

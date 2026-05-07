@@ -22,7 +22,7 @@ We will respond within 72 hours.
   `.env` file that is **excluded from version control** (added to `.gitignore`).
 - This MCP server is **stateless** — it does not store tokens or session data between tool
   calls.
-- Bearer tokens should be treated as secrets with the same care as passwords.
+- API tokens should be treated as secrets with the same care as passwords.
 - The corun-ai instance should enforce per-token rate limits to prevent runaway job
   submission.
 - Use read-only tokens for clients that only need browsing capability.

@@ -1,7 +1,8 @@
 """Async HTTP client for the corun-ai REST API.
 
-Reads connection parameters from environment variables and injects the bearer
-token into every request.
+Reads connection parameters from environment variables and injects a
+Django REST Framework token into every request via the
+``Authorization: Token <token>`` header.
 """
 
 from __future__ import annotations
@@ -20,8 +21,50 @@ load_dotenv()
 
 CORUN_BASE_URL: str = os.environ.get("CORUN_BASE_URL", "")
 CORUN_API_TOKEN: str = os.environ.get("CORUN_API_TOKEN", "")
-CORUN_POLL_INTERVAL: float = float(os.environ.get("CORUN_POLL_INTERVAL", "5"))
-CORUN_POLL_TIMEOUT: float = float(os.environ.get("CORUN_POLL_TIMEOUT", "3600"))
+
+# CORUN_POLL_INTERVAL and CORUN_POLL_TIMEOUT are read lazily via poll_interval()
+# and poll_timeout() to avoid a crash at import time when the env vars contain
+# non-numeric values.
+
+
+def poll_interval() -> float:
+    """Return the configured poll interval in seconds.
+
+    Returns
+    -------
+    float
+        Value of ``CORUN_POLL_INTERVAL`` env var (default: ``5``).
+
+    Raises
+    ------
+    OSError
+        When the env var contains a non-numeric value.
+    """
+    raw = os.environ.get("CORUN_POLL_INTERVAL", "5")
+    try:
+        return float(raw)
+    except ValueError:
+        raise OSError(f"CORUN_POLL_INTERVAL must be a number, got {raw!r}")
+
+
+def poll_timeout() -> float:
+    """Return the configured poll timeout in seconds.
+
+    Returns
+    -------
+    float
+        Value of ``CORUN_POLL_TIMEOUT`` env var (default: ``3600``).
+
+    Raises
+    ------
+    OSError
+        When the env var contains a non-numeric value.
+    """
+    raw = os.environ.get("CORUN_POLL_TIMEOUT", "3600")
+    try:
+        return float(raw)
+    except ValueError:
+        raise OSError(f"CORUN_POLL_TIMEOUT must be a number, got {raw!r}")
 
 
 def _require_env() -> None:
@@ -62,6 +105,37 @@ def _make_client() -> httpx.AsyncClient:
     )
 
 
+# ---------------------------------------------------------------------------
+# Shared client (one per process for connection pooling)
+# ---------------------------------------------------------------------------
+
+_shared_client: httpx.AsyncClient | None = None
+
+
+def _get_shared_client() -> httpx.AsyncClient:
+    """Return the process-level shared client, creating it on first call.
+
+    Reusing a single :class:`httpx.AsyncClient` across requests enables HTTP
+    connection pooling, which reduces latency for frequent tool calls such as
+    job-status polling.
+
+    Returns
+    -------
+    httpx.AsyncClient
+        Shared client instance.
+
+    Raises
+    ------
+    OSError
+        When required environment variables are missing.
+    """
+    global _shared_client
+    _require_env()
+    if _shared_client is None or _shared_client.is_closed:
+        _shared_client = _make_client()
+    return _shared_client
+
+
 async def get(path: str, **params: Any) -> Any:
     """Perform a GET request to the corun-ai API.
 
@@ -81,13 +155,13 @@ async def get(path: str, **params: Any) -> Any:
     ------
     httpx.HTTPStatusError
         On 4xx or 5xx responses.
-    EnvironmentError
+    OSError
         When required environment variables are missing.
     """
-    async with _make_client() as client:
-        response = await client.get(path, params=params or None)
-        response.raise_for_status()
-        return response.json()
+    http_client = _get_shared_client()
+    response = await http_client.get(path, params=params or None)
+    response.raise_for_status()
+    return response.json()
 
 
 async def post(path: str, body: dict[str, Any]) -> Any:
@@ -109,10 +183,10 @@ async def post(path: str, body: dict[str, Any]) -> Any:
     ------
     httpx.HTTPStatusError
         On 4xx or 5xx responses.
-    EnvironmentError
+    OSError
         When required environment variables are missing.
     """
-    async with _make_client() as client:
-        response = await client.post(path, json=body)
-        response.raise_for_status()
-        return response.json()
+    http_client = _get_shared_client()
+    response = await http_client.post(path, json=body)
+    response.raise_for_status()
+    return response.json()

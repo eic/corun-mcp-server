@@ -31,7 +31,7 @@ Set the following environment variables before starting the server:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `CORUN_BASE_URL` | Base URL of the corun-ai instance | *(required)* |
-| `CORUN_API_TOKEN` | Bearer token for authentication | *(required)* |
+| `CORUN_API_TOKEN` | API token for `Authorization: Token` authentication | *(required)* |
 | `CORUN_POLL_INTERVAL` | Seconds between job status polls | `5` |
 | `CORUN_POLL_TIMEOUT` | Maximum seconds to wait for job completion | `3600` |
 

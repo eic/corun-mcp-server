@@ -51,7 +51,7 @@ tests/
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `CORUN_BASE_URL` | Base URL of corun-ai (e.g. `https://epic-devcloud.org/doc`) | *(required)* |
-| `CORUN_API_TOKEN` | Bearer token | *(required)* |
+| `CORUN_API_TOKEN` | API token (`Authorization: Token` scheme) | *(required)* |
 | `CORUN_POLL_INTERVAL` | Seconds between job polls | `5` |
 | `CORUN_POLL_TIMEOUT` | Max seconds to wait for a job | `3600` |
 

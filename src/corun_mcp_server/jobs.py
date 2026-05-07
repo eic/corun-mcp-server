@@ -108,7 +108,11 @@ async def submit_and_generate(
         Combined result with keys ``prompt_group_id``, ``job_id``, ``status``.
     """
     prompt = await submit_prompt(section_name, content, definition_id)
-    prompt_group_id: str = prompt.get("prompt_group_id") or prompt.get("group_id", "")
+    prompt_group_id: str = prompt.get("prompt_group_id") or prompt.get("group_id") or ""
+    if not prompt_group_id:
+        raise ValueError(
+            f"Prompt creation response did not contain 'prompt_group_id': {prompt!r}"
+        )
     job = await generate_from_prompt(prompt_group_id, definition_id)
     return {
         "prompt_group_id": prompt_group_id,
@@ -136,18 +140,19 @@ async def wait_for_job(
     Returns
     -------
     dict[str, Any]
-        Final job status with keys ``job_id``, ``status``,
-        optionally ``result_page_group_id`` and ``content``.
+        Final job status with keys ``job_id``, ``status``, and optionally
+        ``result_page_group_id``.
 
     Raises
     ------
     TimeoutError
         When the job does not complete within *timeout_s* seconds.
     """
-    from corun_mcp_server.client import CORUN_POLL_INTERVAL, CORUN_POLL_TIMEOUT
+    from corun_mcp_server.client import poll_interval as _default_poll_interval
+    from corun_mcp_server.client import poll_timeout as _default_poll_timeout
 
-    effective_timeout = timeout_s if timeout_s is not None else CORUN_POLL_TIMEOUT
-    effective_interval = poll_interval if poll_interval is not None else CORUN_POLL_INTERVAL
+    effective_timeout = timeout_s if timeout_s is not None else _default_poll_timeout()
+    effective_interval = poll_interval if poll_interval is not None else _default_poll_interval()
 
     deadline = time.monotonic() + effective_timeout
 
