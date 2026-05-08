@@ -10,7 +10,7 @@
 
 Please **do not** open a public issue for security vulnerabilities.
 
-Instead, report them privately via [GitHub Security Advisories](https://github.com/wdconinc/corun-mcp-server/security/advisories/new)
+Instead, report them privately via [GitHub Security Advisories](https://github.com/eic/corun-mcp-server/security/advisories/new)
 or by emailing the maintainer directly.
 
 We will respond within 72 hours.

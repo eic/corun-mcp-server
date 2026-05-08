@@ -175,7 +175,7 @@ print(result)
 docker run --rm -i \
   -e CORUN_BASE_URL=https://epic-devcloud.org/doc \
   -e CORUN_API_TOKEN=<your-token> \
-  ghcr.io/wdconinc/corun-mcp-server
+  ghcr.io/eic/corun-mcp-server
 ```
 
 ## Resources
