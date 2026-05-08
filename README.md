@@ -19,7 +19,7 @@ pip install corun-mcp-server
 Or install from source:
 
 ```bash
-git clone https://github.com/wdconinc/corun-mcp-server
+git clone https://github.com/eic/corun-mcp-server
 cd corun-mcp-server
 pip install -e ".[dev]"
 ```
@@ -71,7 +71,7 @@ Add to `claude_desktop_config.json`:
 docker run --rm -i \
   -e CORUN_BASE_URL=https://epic-devcloud.org/doc \
   -e CORUN_API_TOKEN=<your-token> \
-  ghcr.io/wdconinc/corun-mcp-server
+  ghcr.io/eic/corun-mcp-server
 ```
 
 ## Available Tools

@@ -34,8 +34,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # Labels
 LABEL org.opencontainers.image.title="corun MCP Server" \
       org.opencontainers.image.description="MCP server for corun-ai integration" \
-      org.opencontainers.image.vendor="wdconinc" \
-      org.opencontainers.image.source="https://github.com/wdconinc/corun-mcp-server" \
+      org.opencontainers.image.vendor="eic" \
+      org.opencontainers.image.source="https://github.com/eic/corun-mcp-server" \
       org.opencontainers.image.licenses="MIT"
 
 # Run the MCP server (stdio transport)
