@@ -64,7 +64,7 @@ jobs:
           labels: |
             org.opencontainers.image.title=corun MCP Server
             org.opencontainers.image.description=MCP server for corun-ai integration
-            org.opencontainers.image.vendor=wdconinc
+            org.opencontainers.image.vendor=eic
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
